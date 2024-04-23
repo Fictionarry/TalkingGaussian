@@ -8,4 +8,4 @@ This is the official repository for our paper **TalkingGaussian: Structure-Persi
 
 
 
-Code is expected to release in few months.
+Code is expected to be released after months.
