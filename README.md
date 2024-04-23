@@ -1,11 +1,6 @@
-# TalkingGaussian
+# ER-NeRF
 
-This is the official repository for our paper **TalkingGaussian: Structure-Persistent 3D Talking Head Synthesis via Gaussian Splatting**.
+Based on [Nerfies website](https://nerfies.github.io).
 
-[Paper](https://arxiv.org/abs/xxxxx) | [Project](https://fictionarry.github.io/TalkingGaussian/) | [Video](https://youtu.be/N5H-UZLMBWc)
-
-![image](assets/main.png)
-
-
-
-Code is expected to release in few months.
+# Website License
+<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
