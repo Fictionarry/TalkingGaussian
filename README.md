@@ -1,4 +1,4 @@
-# TalkingGaussian
+# TalkingGaussian: Structure-Persistent 3D Talking Head Synthesis via Gaussian Splatting
 
 This is the official repository for our ECCV 2024 paper **TalkingGaussian: Structure-Persistent 3D Talking Head Synthesis via Gaussian Splatting**.
 
