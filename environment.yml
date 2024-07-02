@@ -1,0 +1,45 @@
+name: talking_gaussian
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - cudatoolkit=11.3
+  - plyfile=0.8.1
+  - python=3.7.13
+  - pip=22.3.1
+  - pytorch=1.12.1
+  - torchaudio=0.12.1
+  - torchvision=0.13.1
+  - tqdm
+  - ffmpeg
+  - openh264
+  - pip:
+    - ./submodules/diff-gaussian-rasterization
+    - ./submodules/simple-knn
+    - ./gridencoder
+    - numpy
+    - pillow
+    - scipy
+    - tensorboard
+    - opencv-python
+    - tensorboardX
+
+    - pandas
+    - tqdm
+    - matplotlib
+    - PyMCubes
+    - rich
+    - packaging
+    - scikit-learn
+
+    - face_alignment
+    - python_speech_features
+    - numba
+    - resampy
+    - pyaudio
+    - soundfile
+    - configargparse
+
+    - lpips
+    - imageio-ffmpeg
