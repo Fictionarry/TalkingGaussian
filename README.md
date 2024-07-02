@@ -37,7 +37,7 @@ If encounter installation problem from the `diff-gaussian-rasterization` or `gri
   python convert_BFM.py
   ```
 
-- Following [EasyPortrait](https://github.com/hukenovs/easyportrait) to install the environment:
+- Prepare the environment for [EasyPortrait](https://github.com/hukenovs/easyportrait):
 
   ```bash
   # prepare mmcv
