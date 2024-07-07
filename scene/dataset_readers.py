@@ -97,7 +97,7 @@ def storePly(path, xyz, rgb):
 
 def readCamerasFromTransforms(path, transformsfile, white_background, extension=".jpg", audio_file='', audio_extractor='deepspeech'):
     cam_infos = []
-    postfix_dict = {"deepspeech": "ds", "hubert": "hu"}
+    postfix_dict = {"deepspeech": "ds", "esperanto": "eo", "hubert": "hu"}
 
     with open(os.path.join(path, transformsfile)) as json_file:
         contents = json.load(json_file)
