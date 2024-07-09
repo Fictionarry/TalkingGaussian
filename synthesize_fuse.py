@@ -25,13 +25,8 @@ from gaussian_renderer import GaussianModel, MotionNetwork, MouthMotionNetwork
 
 import torch.nn.functional as F
 
-def dilate_fn(bin_img, ksize=13):
-    pad = (ksize - 1) // 2
-    bin_img = F.pad(bin_img, pad=[pad, pad, pad, pad], mode='reflect')
-    out = F.max_pool2d(bin_img, kernel_size=ksize, stride=1, padding=0)
-    return out
 
-def render_set(model_path, name, iteration, views, gaussians, motion_net, gaussians_mouth, motion_net_mouth, pipeline, background, fast, dilate):
+def render_set(model_path, name, iteration, views, gaussians, motion_net, gaussians_mouth, motion_net_mouth, pipeline, background, fast):
     render_path = os.path.join(model_path, name, "ours_{}".format(iteration), "renders")
     gts_path = os.path.join(model_path, name, "ours_{}".format(iteration), "gt")
 
@@ -53,10 +48,7 @@ def render_set(model_path, name, iteration, views, gaussians, motion_net, gaussi
         # torchvision.utils.save_image(rendering, os.path.join(render_path, '{0:05d}'.format(idx) + ".png"))
         # torchvision.utils.save_image(gt, os.path.join(gts_path, '{0:05d}'.format(idx) + ".png"))
 
-        if dilate:
-            alpha_mouth = dilate_fn(render_pkg_mouth["alpha"][None])[0]
-        else:
-            alpha_mouth = render_pkg_mouth["alpha"]
+        alpha_mouth = render_pkg_mouth["alpha"]
             
         mouth_image = render_pkg_mouth["render"] + view.background.cuda() / 255.0 * (1.0 - alpha_mouth)
 
@@ -82,7 +74,7 @@ def render_set(model_path, name, iteration, views, gaussians, motion_net, gaussi
 
 
 
-def render_sets(dataset : ModelParams, iteration : int, pipeline : PipelineParams, use_train : bool, fast, dilate):
+def render_sets(dataset : ModelParams, iteration : int, pipeline : PipelineParams, use_train : bool, fast):
     with torch.no_grad():
         gaussians = GaussianModel(dataset.sh_degree)
         gaussians_mouth = GaussianModel(dataset.sh_degree)
@@ -105,7 +97,7 @@ def render_sets(dataset : ModelParams, iteration : int, pipeline : PipelineParam
         bg_color = [1,1,1] if dataset.white_background else [0, 0, 0]
         background = torch.tensor(bg_color, dtype=torch.float32, device="cuda")
         
-        render_set(dataset.model_path, "test" if not use_train else "train", scene.loaded_iter, scene.getTestCameras() if not use_train else scene.getTrainCameras(), gaussians, motion_net, gaussians_mouth, motion_net_mouth, pipeline, background, fast, dilate)
+        render_set(dataset.model_path, "test" if not use_train else "train", scene.loaded_iter, scene.getTestCameras() if not use_train else scene.getTrainCameras(), gaussians, motion_net, gaussians_mouth, motion_net_mouth, pipeline, background, fast)
 
 if __name__ == "__main__":
     # Set up command line argument parser
@@ -116,11 +108,10 @@ if __name__ == "__main__":
     parser.add_argument("--use_train", action="store_true")
     parser.add_argument("--quiet", action="store_true")
     parser.add_argument("--fast", action="store_true")
-    parser.add_argument("--dilate", action="store_true")
     args = get_combined_args(parser)
     print("Rendering " + args.model_path)
 
     # Initialize system state (RNG)
     safe_state(args.quiet)
     
-    render_sets(model.extract(args), args.iteration, pipeline.extract(args), args.use_train, args.fast, args.dilate)
+    render_sets(model.extract(args), args.iteration, pipeline.extract(args), args.use_train, args.fast)

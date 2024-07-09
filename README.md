@@ -25,7 +25,7 @@ If encounter installation problem from the `diff-gaussian-rasterization` or `gri
 - Prepare face-parsing model and  the 3DMM model for head pose estimation.
 
   ```bash
-  bash script/prepare.sh
+  bash scripts/prepare.sh
   ```
 
 - Download 3DMM model from [Basel Face Model 2009](https://faces.dmi.unibas.ch/bfm/main.php?nav=1-1-0&id=details):

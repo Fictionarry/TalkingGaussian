@@ -24,10 +24,6 @@ def loadCam(args, id, cam_info, resolution_scale):
     gt_image = image_rgb[:3, ...]
     loaded_mask = None
 
-    cam_info._replace(image = None)
-    cam_info._replace(background = None)
-
-
     return Camera(colmap_id=cam_info.uid, R=cam_info.R, T=cam_info.T, 
                   FoVx=cam_info.FovX, FoVy=cam_info.FovY, 
                   image=gt_image, gt_alpha_mask=loaded_mask, background=background, talking_dict=cam_info.talking_dict,

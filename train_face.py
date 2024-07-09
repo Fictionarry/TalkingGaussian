@@ -109,15 +109,17 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         au_lb = au_lb - au_window * 0.5
 
 
-        if warm_step < iteration < mouth_select_iter:
-
-            if iteration % (select_interval * 2) == 0:
+        if iteration < warm_step:
+            if iteration % select_interval == 0:
                 while viewpoint_cam.talking_dict['mouth_bound'][2] < mouth_lb or viewpoint_cam.talking_dict['mouth_bound'][2] > mouth_ub:
                     if not viewpoint_stack:
                         viewpoint_stack = scene.getTrainCameras().copy()
                     viewpoint_cam = viewpoint_stack.pop(randint(0, len(viewpoint_stack)-1))
 
-            if iteration % select_interval == select_interval // 2:
+
+        if warm_step < iteration < mouth_select_iter:
+
+            if iteration % select_interval == 0:
                 while viewpoint_cam.talking_dict['blink'] < au_lb or viewpoint_cam.talking_dict['blink'] > au_ub:
                     if not viewpoint_stack:
                         viewpoint_stack = scene.getTrainCameras().copy()
@@ -133,6 +135,10 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         hair_mask = torch.as_tensor(viewpoint_cam.talking_dict["hair_mask"]).cuda()
         mouth_mask = torch.as_tensor(viewpoint_cam.talking_dict["mouth_mask"]).cuda()
         head_mask =  face_mask + hair_mask
+
+        if iteration > lpips_start_iter:
+            max_pool = torch.nn.MaxPool2d(kernel_size=3, stride=1, padding=1)
+            mouth_mask = (-max_pool(-max_pool(mouth_mask[None].float())))[0].bool()
 
         
         hair_mask_iter = (warm_step < iteration < lpips_start_iter - 1000) and iteration % hair_mask_interval != 0
@@ -205,7 +211,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             image_t = image.clone()
             gt_image_t = gt_image.clone()
 
-        if iteration > lpips_start_iter:        
+        if iteration > lpips_start_iter:   
             # mask mouth
             [xmin, xmax, ymin, ymax] = viewpoint_cam.talking_dict['lips_rect']
             loss += 0.01 * lpips_criterion(image_t.clone()[:, xmin:xmax, ymin:ymax] * 2 - 1, gt_image_t.clone()[:, xmin:xmax, ymin:ymax] * 2 - 1).mean()
@@ -330,11 +336,17 @@ def training_report(tb_writer, iteration, Ll1, loss, l1_loss, elapsed, testing_i
                     alpha = render_pkg["alpha"]
                     image = image - renderArgs[1][:, None, None] * (1.0 - alpha) + viewpoint.background.cuda() / 255.0 * (1.0 - alpha)
                     gt_image = torch.clamp(viewpoint.original_image.to("cuda") / 255.0, 0.0, 1.0)
+                    
+                    mouth_mask = torch.as_tensor(viewpoint.talking_dict["mouth_mask"]).cuda()
+                    max_pool = torch.nn.MaxPool2d(kernel_size=3, stride=1, padding=1)
+                    mouth_mask_post = (-max_pool(-max_pool(mouth_mask[None].float())))[0].bool()
+                    
                     if tb_writer and (idx < 5):
                         tb_writer.add_images(config['name'] + "_view_{}/render".format(viewpoint.image_name), image[None], global_step=iteration)
-                        # tb_writer.add_images(config['name'] + "_view_{}/bg".format(viewpoint.image_name), torch.clamp(viewpoint.background.to("cuda") / 255.0, 0.0, 1.0)[None], global_step=iteration)
                         tb_writer.add_images(config['name'] + "_view_{}/ground_truth".format(viewpoint.image_name), gt_image[None], global_step=iteration)
-                        tb_writer.add_images(config['name'] + "_view_{}/depth".format(viewpoint.image_name), (render_pkg["depth"] / render_pkg["depth"].max())[None], global_step=iteration)
+                        # tb_writer.add_images(config['name'] + "_view_{}/depth".format(viewpoint.image_name), (render_pkg["depth"] / render_pkg["depth"].max())[None], global_step=iteration)
+                        tb_writer.add_images(config['name'] + "_view_{}/mouth_mask_post".format(viewpoint.image_name), (~mouth_mask_post * gt_image)[None], global_step=iteration)
+                        tb_writer.add_images(config['name'] + "_view_{}/mouth_mask".format(viewpoint.image_name), (~mouth_mask[None] * gt_image)[None], global_step=iteration)
 
                         if renderFunc is not render:
                             tb_writer.add_images(config['name'] + "_view_{}/attn_a".format(viewpoint.image_name), (render_pkg["attn"][0] / render_pkg["attn"][0].max())[None, None], global_step=iteration)  

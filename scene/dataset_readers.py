@@ -156,8 +156,6 @@ def readCamerasFromTransforms(path, transformsfile, white_background, extension=
         mouth_lb = (ldmks_mouth[:, 1] - ldmks_mouth[:, 0]).min()
         mouth_ub = (ldmks_mouth[:, 1] - ldmks_mouth[:, 0]).max()
 
-        print(mouth_lb, mouth_ub)
-
 
 
         for idx, frame in tqdm(enumerate(frames)):
@@ -244,6 +242,7 @@ def readCamerasFromTransforms(path, transformsfile, white_background, extension=
                             image_path=image_path, image_name=image_name, width=w, height=h, background=bg, talking_dict=talking_dict))
 
             # if idx > 200: break
+            # if idx > 6500: break
             
     return cam_infos
 
