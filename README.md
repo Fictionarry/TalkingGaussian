@@ -106,7 +106,7 @@ In our paper, we use DeepSpeech features for evaluation.
 
 - HuBERT
 
-  Similar to ER-NeRF, HuBERT is also available.
+  Similar to ER-NeRF, HuBERT is also available. Recommended for situations if the audio is not in English.
 
   Specify `--audio_extractor hubert` when training and testing.
 
