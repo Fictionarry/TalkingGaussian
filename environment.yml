@@ -28,7 +28,7 @@ dependencies:
     - pandas
     - tqdm
     - matplotlib
-    - PyMCubes
+    - PyMCubes==0.1.4
     - rich
     - packaging
     - scikit-learn
