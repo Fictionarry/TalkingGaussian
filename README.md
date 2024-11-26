@@ -49,7 +49,7 @@ If encounter installation problem from the `diff-gaussian-rasterization` or `gri
 
   # download model weight
   cd data_utils/easyportrait
-  wget "https://n-ws-620xz-pd11.s3pd11.sbercloud.ru/b-ws-620xz-pd11-jux/easyportrait/experiments/models/fpn-fp-512.pth"
+  wget "https://rndml-team-cv.obs.ru-moscow-1.hc.sbercloud.ru/datasets/easyportrait/experiments/models/fpn-fp-512.pth"
   ```
 
 ## Usage
