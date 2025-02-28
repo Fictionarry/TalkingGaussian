@@ -6,7 +6,6 @@ This is the official repository for our ECCV 2024 paper **TalkingGaussian: Struc
 
 ![image](./assets/main.png)
 
-
 ## Installation
 
 Tested on Ubuntu 18.04, CUDA 11.3, PyTorch 1.12.1
@@ -128,22 +127,27 @@ bash scripts/train_xx.sh data/<ID> output/<project_name> <GPU_ID>
 python synthesize_fuse.py -S data/<ID> -M output/<project_name> --eval  
 ```
 
-### Inference with target audio
+### Inference with Specified Audio
 
 ```bash
 python synthesize_fuse.py -S data/<ID> -M output/<project_name> --use_train --audio <preprocessed_audio_feature>.npy
 ```
+
+## Related Work
+- [2025/02/28] Our work [InsTaG](https://fictionarry.github.io/InsTaG/) at CVPR 2025 is released! 🔥
 
 ## Citation
 
 Consider citing as below if you find this repository helpful to your project:
 
 ```
-@article{li2024talkinggaussian,
-    title={TalkingGaussian: Structure-Persistent 3D Talking Head Synthesis via Gaussian Splatting}, 
-    author={Jiahe Li and Jiawei Zhang and Xiao Bai and Jin Zheng and Xin Ning and Jun Zhou and Lin Gu},
-    journal={arXiv preprint arXiv:2404.15264},
-    year={2024}
+@inproceedings{li2024talkinggaussian,
+  title={TalkingGaussian: Structure-Persistent 3D Talking Head Synthesis via Gaussian Splatting},
+  author={Li, Jiahe and Zhang, Jiawei and Bai, Xiao and Zheng, Jin and Ning, Xin and Zhou, Jun and Gu, Lin},
+  booktitle={European Conference on Computer Vision},
+  pages={127--145},
+  year={2024},
+  organization={Springer}
 }
 ```
 
