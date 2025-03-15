@@ -113,6 +113,12 @@ In our paper, we use DeepSpeech features for evaluation.
   python data_utils/hubert.py --wav data/<name>.wav # save to data/<name>_hu.npy
   ```
 
+### Data Loading
+
+By default, we preload all the data into RAM for acceleration, but the consumption maybe unaffordable (about N x 32GB RAM for about N x 5k frames). 
+
+(Experimental) You can try to set `preload=False` in the `scene/dataset_readers.py - readCamerasFromTransforms(·)` to load the data temporally per iteration to save the cost. As the trade-off, the speed could be much slow. (Not fully tested. No guarantee of correctness.)
+
 ### Train
 
 ```bash

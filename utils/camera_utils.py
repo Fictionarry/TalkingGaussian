@@ -11,23 +11,32 @@
 
 from scene.cameras import Camera
 import numpy as np
+import os
+from PIL import Image
 from utils.general_utils import PILtoTorch
 from utils.graphics_utils import fov2focal
 
 WARNED = False
 
 def loadCam(args, id, cam_info, resolution_scale):
+    
+    if cam_info.image is not None:
+        image_rgb = PILtoTorch(cam_info.image).type("torch.ByteTensor")
+        gt_image = image_rgb[:3, ...]
+    else:
+        gt_image = None
+        
+    if cam_info.background is not None:
+        background = PILtoTorch(cam_info.background)[:3, ...].type("torch.ByteTensor")
+    else:
+        background = None
 
-    image_rgb = PILtoTorch(cam_info.image).type("torch.ByteTensor")
-    background = PILtoTorch(cam_info.background)[:3, ...].type("torch.ByteTensor")
-
-    gt_image = image_rgb[:3, ...]
     loaded_mask = None
 
     return Camera(colmap_id=cam_info.uid, R=cam_info.R, T=cam_info.T, 
                   FoVx=cam_info.FovX, FoVy=cam_info.FovY, 
                   image=gt_image, gt_alpha_mask=loaded_mask, background=background, talking_dict=cam_info.talking_dict,
-                  image_name=cam_info.image_name, uid=id, data_device=args.data_device)
+                  image_name=cam_info.image_name, image_path=cam_info.image_path, uid=id, data_device=args.data_device)
 
 def cameraList_from_camInfos(cam_infos, resolution_scale, args):
     camera_list = []
@@ -58,3 +67,31 @@ def camera_to_JSON(id, camera : Camera):
         'fx' : fov2focal(camera.FovX, camera.width)
     }
     return camera_entry
+
+
+def loadCamOnTheFly(camera):
+    image_path = camera.image_path
+    image = Image.open(image_path)
+    image = np.array(image.convert("RGB"))
+
+    bg_img = np.array(Image.open(os.path.join("/".join(image_path.split("/")[:-2]), 'bc.jpg')).convert("RGB"))
+    torso_img_path = image_path.replace("gt_imgs", "torso_imgs").replace("jpg", "png")
+    torso_img = np.array(Image.open(torso_img_path).convert("RGBA")) * 1.0
+    bg = torso_img[..., :3] * torso_img[..., 3:] / 255.0 + bg_img * (1 - torso_img[..., 3:] / 255.0)
+    background = bg.astype(np.uint8)
+
+    teeth_mask_path = image_path.replace("gt_imgs", "teeth_mask").replace("jpg", "npy")
+    teeth_mask = np.load(teeth_mask_path)
+
+    mask_path = image_path.replace("gt_imgs", "parsing").replace("jpg", "png")
+    mask = np.array(Image.open(mask_path).convert("RGB")) * 1.0
+    camera.talking_dict['face_mask'] = (mask[:, :, 2] > 254) * (mask[:, :, 0] == 0) * (mask[:, :, 1] == 0) ^ teeth_mask
+    camera.talking_dict['hair_mask'] = (mask[:, :, 0] < 1) * (mask[:, :, 1] < 1) * (mask[:, :, 2] < 1)
+    camera.talking_dict['mouth_mask'] = (mask[:, :, 0] == 100) * (mask[:, :, 1] == 100) * (mask[:, :, 2] == 100) + teeth_mask
+    
+    camera.original_image = PILtoTorch(image).type("torch.ByteTensor").clamp(0, 255).to(camera.data_device)
+    camera.background = PILtoTorch(background)[:3, ...].type("torch.ByteTensor").clamp(0, 255).to(camera.data_device)
+    camera.image_width = camera.original_image.shape[2]
+    camera.image_height = camera.original_image.shape[1]
+    
+    return camera

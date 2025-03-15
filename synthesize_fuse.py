@@ -45,6 +45,8 @@ def render_set(model_path, name, iteration, views, gaussians, motion_net, gaussi
 
 
     for idx, view in enumerate(tqdm(views, desc="Rendering progress", ascii=True)):
+        if view.original_image == None:
+            view = loadCamOnTheFly(copy.deepcopy(view))
         with torch.no_grad():
             render_pkg = render_motion(view, gaussians, motion_net, pipeline, background, frame_idx=0)
             render_pkg_mouth = render_motion_mouth(view, gaussians_mouth, motion_net_mouth, pipeline, background, frame_idx=0)

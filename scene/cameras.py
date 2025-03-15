@@ -16,7 +16,7 @@ from utils.graphics_utils import getWorld2View2, getProjectionMatrix
 
 class Camera(nn.Module):
     def __init__(self, colmap_id, R, T, FoVx, FoVy, image, gt_alpha_mask, background, talking_dict,
-                 image_name, uid,
+                 image_name, image_path, uid,
                  trans=np.array([0.0, 0.0, 0.0]), scale=1.0, data_device = "cuda"
                  ):
         super(Camera, self).__init__()
@@ -28,6 +28,7 @@ class Camera(nn.Module):
         self.FoVx = FoVx
         self.FoVy = FoVy
         self.image_name = image_name
+        self.image_path = image_path
         self.talking_dict = talking_dict
 
         try:
@@ -36,12 +37,18 @@ class Camera(nn.Module):
             print(e)
             print(f"[Warning] Custom device {data_device} failed, fallback to default cuda device" )
             self.data_device = torch.device("cuda")
+        
+        if image is not None:
+            self.original_image = image.clamp(0, 255).to(self.data_device)
+            self.image_width = self.original_image.shape[2]
+            self.image_height = self.original_image.shape[1]
+        else:
+            self.original_image = None
 
-        self.original_image = image.clamp(0, 255).to(self.data_device)
-        self.image_width = self.original_image.shape[2]
-        self.image_height = self.original_image.shape[1]
-
-        self.background = background.clamp(0, 255).to(self.data_device)
+        if background is not None:
+            self.background = background.clamp(0, 255).to(self.data_device)
+        else:
+            self.background = None
         
         # for key in self.mask.keys():
         #     self.mask[key] = torch.as_tensor(self.mask[key], device=self.data_device)

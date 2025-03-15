@@ -24,6 +24,9 @@ from tqdm import tqdm
 from utils.image_utils import psnr
 from argparse import ArgumentParser, Namespace
 from arguments import ModelParams, PipelineParams, OptimizationParams
+from utils.camera_utils import loadCamOnTheFly
+import copy
+
 try:
     from torch.utils.tensorboard import SummaryWriter
     TENSORBOARD_FOUND = True
@@ -109,13 +112,18 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                         viewpoint_stack = scene.getTrainCameras().copy()
                     viewpoint_cam = viewpoint_stack.pop(randint(0, len(viewpoint_stack)-1))
 
+            if viewpoint_cam.original_image == None:
+                viewpoint_cam = loadCamOnTheFly(copy.deepcopy(viewpoint_cam))
+
             while torch.as_tensor(viewpoint_cam.talking_dict["mouth_mask"]).cuda().sum() < 20:
                 if not viewpoint_stack:
                     viewpoint_stack = scene.getTrainCameras().copy()
                 viewpoint_cam = viewpoint_stack.pop(randint(0, len(viewpoint_stack)-1))
+                if viewpoint_cam.original_image == None:
+                    viewpoint_cam = loadCamOnTheFly(copy.deepcopy(viewpoint_cam))
 
-
-
+        if viewpoint_cam.original_image == None:
+            viewpoint_cam = loadCamOnTheFly(copy.deepcopy(viewpoint_cam))
 
         # Render
         if (iteration - 1) == debug_from:
@@ -273,7 +281,9 @@ def training_report(tb_writer, iteration, Ll1, loss, l1_loss, elapsed, testing_i
                 l1_test = 0.0
                 psnr_test = 0.0
                 for idx, viewpoint in enumerate(config['cameras']):
-
+                    if viewpoint.original_image == None:
+                        viewpoint = loadCamOnTheFly(copy.deepcopy(viewpoint))
+                        
                     if renderFunc is render:
                         render_pkg = renderFunc(viewpoint, scene.gaussians, *renderArgs)
                     else:

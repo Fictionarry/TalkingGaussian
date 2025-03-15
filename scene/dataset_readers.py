@@ -95,7 +95,7 @@ def storePly(path, xyz, rgb):
     ply_data = PlyData([vertex_element])
     ply_data.write(path)
 
-def readCamerasFromTransforms(path, transformsfile, white_background, extension=".jpg", audio_file='', audio_extractor='deepspeech'):
+def readCamerasFromTransforms(path, transformsfile, white_background, extension=".jpg", audio_file='', audio_extractor='deepspeech', preload=True):
     cam_infos = []
     postfix_dict = {"deepspeech": "ds", "esperanto": "eo", "hubert": "hu"}
 
@@ -175,26 +175,34 @@ def readCamerasFromTransforms(path, transformsfile, white_background, extension=
             image_name = Path(cam_name).stem
             image = Image.open(image_path)
             w, h = image.size[0], image.size[1]
-            image = np.array(image.convert("RGB"))
+            if preload:
+                image = np.array(image.convert("RGB"))
+            else:
+                image = None
 
             torso_img_path = os.path.join(path, 'torso_imgs', str(frame['img_id']) + '.png')
-            torso_img = np.array(Image.open(torso_img_path).convert("RGBA")) * 1.0
-            bg = torso_img[..., :3] * torso_img[..., 3:] / 255.0 + bg_img * (1 - torso_img[..., 3:] / 255.0)
-            bg = bg.astype(np.uint8)
+            if preload:
+                torso_img = np.array(Image.open(torso_img_path).convert("RGBA")) * 1.0
+                bg = torso_img[..., :3] * torso_img[..., 3:] / 255.0 + bg_img * (1 - torso_img[..., 3:] / 255.0)
+                bg = bg.astype(np.uint8)
+            else:
+                bg = None
             # bg = Image.fromarray(np.array(bg, dtype=np.byte), "RGB")
             # bg = np.array([1,1,1]) if white_background else np.array([0, 0, 0])
 
             talking_dict = {}
             talking_dict['img_id'] = frame['img_id']
 
-            teeth_mask_path = os.path.join(path, 'teeth_mask', str(frame['img_id']) + '.npy')
-            teeth_mask = np.load(teeth_mask_path)
+            if preload:
+                teeth_mask_path = os.path.join(path, 'teeth_mask', str(frame['img_id']) + '.npy')
+                teeth_mask = np.load(teeth_mask_path)
 
-            mask_path = os.path.join(path, 'parsing', str(frame['img_id']) + '.png')
-            mask = np.array(Image.open(mask_path).convert("RGB")) * 1.0
-            talking_dict['face_mask'] = (mask[:, :, 2] > 254) * (mask[:, :, 0] == 0) * (mask[:, :, 1] == 0) ^ teeth_mask
-            talking_dict['hair_mask'] = (mask[:, :, 0] < 1) * (mask[:, :, 1] < 1) * (mask[:, :, 2] < 1)
-            talking_dict['mouth_mask'] = (mask[:, :, 0] == 100) * (mask[:, :, 1] == 100) * (mask[:, :, 2] == 100) + teeth_mask
+                mask_path = os.path.join(path, 'parsing', str(frame['img_id']) + '.png')
+                mask = np.array(Image.open(mask_path).convert("RGB")) * 1.0
+                talking_dict['face_mask'] = (mask[:, :, 2] > 254) * (mask[:, :, 0] == 0) * (mask[:, :, 1] == 0) ^ teeth_mask
+                talking_dict['hair_mask'] = (mask[:, :, 0] < 1) * (mask[:, :, 1] < 1) * (mask[:, :, 2] < 1)
+                talking_dict['mouth_mask'] = (mask[:, :, 0] == 100) * (mask[:, :, 1] == 100) * (mask[:, :, 2] == 100) + teeth_mask
+
 
             
             if audio_file == '':
