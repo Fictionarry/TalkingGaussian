@@ -19,6 +19,8 @@ from os import makedirs
 from gaussian_renderer import render_motion, render_motion_mouth
 import torchvision
 from utils.general_utils import safe_state
+from utils.camera_utils import loadCamOnTheFly
+import copy
 from argparse import ArgumentParser
 from arguments import ModelParams, PipelineParams, get_combined_args
 from gaussian_renderer import GaussianModel, MotionNetwork, MouthMotionNetwork

@@ -10,6 +10,7 @@
 #
 
 from scene.cameras import Camera
+import torch
 import numpy as np
 import os
 from PIL import Image
@@ -74,23 +75,22 @@ def loadCamOnTheFly(camera):
     image = Image.open(image_path)
     image = np.array(image.convert("RGB"))
 
-    bg_img = np.array(Image.open(os.path.join("/".join(image_path.split("/")[:-2]), 'bc.jpg')).convert("RGB"))
+    bg_img = PILtoTorch(np.array(Image.open(os.path.join("/".join(image_path.split("/")[:-2]), 'bc.jpg')).convert("RGB"))).to(camera.data_device)
     torso_img_path = image_path.replace("gt_imgs", "torso_imgs").replace("jpg", "png")
-    torso_img = np.array(Image.open(torso_img_path).convert("RGBA")) * 1.0
-    bg = torso_img[..., :3] * torso_img[..., 3:] / 255.0 + bg_img * (1 - torso_img[..., 3:] / 255.0)
-    background = bg.astype(np.uint8)
+    torso_img = PILtoTorch(np.array(Image.open(torso_img_path).convert("RGBA")) * 1.0).to(camera.data_device)
+    bg = torso_img[:3] * torso_img[3:] / 255 + bg_img * (1.0 - torso_img[3:] / 255)
 
     teeth_mask_path = image_path.replace("gt_imgs", "teeth_mask").replace("jpg", "npy")
-    teeth_mask = np.load(teeth_mask_path)
+    teeth_mask = torch.as_tensor(np.load(teeth_mask_path)).to(camera.data_device)
 
     mask_path = image_path.replace("gt_imgs", "parsing").replace("jpg", "png")
-    mask = np.array(Image.open(mask_path).convert("RGB")) * 1.0
-    camera.talking_dict['face_mask'] = (mask[:, :, 2] > 254) * (mask[:, :, 0] == 0) * (mask[:, :, 1] == 0) ^ teeth_mask
-    camera.talking_dict['hair_mask'] = (mask[:, :, 0] < 1) * (mask[:, :, 1] < 1) * (mask[:, :, 2] < 1)
-    camera.talking_dict['mouth_mask'] = (mask[:, :, 0] == 100) * (mask[:, :, 1] == 100) * (mask[:, :, 2] == 100) + teeth_mask
+    mask = PILtoTorch(np.array(Image.open(mask_path).convert("RGB")) * 1.0).to(camera.data_device)
+    camera.talking_dict['face_mask'] = (mask[2] > 254) * (mask[0] == 0) * (mask[1] == 0) ^ teeth_mask
+    camera.talking_dict['hair_mask'] = (mask[0] < 1) * (mask[1] < 1) * (mask[2] < 1)
+    camera.talking_dict['mouth_mask'] = (mask[0] == 100) * (mask[1] == 100) * (mask[2] == 100) + teeth_mask
     
     camera.original_image = PILtoTorch(image).type("torch.ByteTensor").clamp(0, 255).to(camera.data_device)
-    camera.background = PILtoTorch(background)[:3, ...].type("torch.ByteTensor").clamp(0, 255).to(camera.data_device)
+    camera.background = bg.type("torch.ByteTensor").clamp(0, 255).to(camera.data_device)
     camera.image_width = camera.original_image.shape[2]
     camera.image_height = camera.original_image.shape[1]
     

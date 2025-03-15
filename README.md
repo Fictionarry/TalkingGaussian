@@ -117,7 +117,7 @@ In our paper, we use DeepSpeech features for evaluation.
 
 By default, we preload all the data into RAM for acceleration, but the consumption maybe unaffordable (about N x 32GB RAM for about N x 5k frames). 
 
-(Experimental) You can try to set `preload=False` in the `scene/dataset_readers.py - readCamerasFromTransforms(·)` to load the data temporally per iteration to save the cost. As the trade-off, the speed could be much slow. (Not fully tested. No guarantee of correctness.)
+(Experimental) You can try to set `preload=False` in the `scene/dataset_readers.py - readCamerasFromTransforms(·)` to load the data temporally per iteration to save the cost. As the trade-off, the speed could be slower.
 
 ### Train
 
@@ -139,7 +139,7 @@ python synthesize_fuse.py -S data/<ID> -M output/<project_name> --eval
 python synthesize_fuse.py -S data/<ID> -M output/<project_name> --use_train --audio <preprocessed_audio_feature>.npy
 ```
 
-## Related Work
+## Follow-Up 
 - [2025/02/28] Our work [InsTaG](https://fictionarry.github.io/InsTaG/) at CVPR 2025 is released! 🔥
 
 ## Citation
